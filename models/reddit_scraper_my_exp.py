@@ -55,6 +55,75 @@ class RedditScraper:
         
         if response.status_code == 200:
             data = response.json()
+<<<<<<< HEAD
+            
+            if 'data' not in data:
+                break
+                
+            new_posts = data['data']['children']
+            if not new_posts:
+                break
+                
+            posts.extend([post['data'] for post in new_posts])
+            after = new_posts[-1]['data']['name']
+            
+            time.sleep(2)  # Rate limiting
+            
+        return posts[:limit]
+    
+import requests
+import time
+from urllib.parse import urlparse
+
+# This is code modified using co-pilot to handle internal and external URLs
+class RedditScraper2:
+    def __init__(self, user_agent):
+        self.headers = {'User-Agent': user_agent}
+        self.base_url = "https://api.reddit.com"
+    
+    @cache_results
+    def get_subreddit_posts(self, subreddit, limit=100, cache=False, cache_duration_hours=24):
+        posts = []
+        after = None
+        
+        while len(posts) < limit:
+            url = f"{self.base_url}/r/{subreddit}/new"
+            params = {
+                'limit': min(100, limit - len(posts)),
+                'after': after
+            }
+            
+            response = requests.get(url, headers=self.headers, params=params)
+            data = response.json()
+            
+            if 'data' not in data:
+                break
+                
+            new_posts = data['data']['children']
+            if not new_posts:
+                break
+
+            # Modified code to handle internal and external URLs by co-pilot    
+            for post in new_posts:
+                post_data = post['data']
+                post_url = post_data.get('url', '')
+                parsed_url = urlparse(post_url)
+                
+                if parsed_url.netloc == 'www.reddit.com':
+                    # Handle internal Reddit URL
+                    post_data['parsed_url'] = 'Internal URL'
+                else:
+                    # Handle external URL
+                    post_data['parsed_url'] = 'External URL'
+                
+                posts.append(post_data)
+                
+            after = new_posts[-1]['data']['name']
+            
+            time.sleep(2)  # Rate limiting
+            
+        return posts[:limit]
+=======
             # Debug print
             print(f"Response keys: {data.keys()}")
             if 'data' in data:
@@ -105,3 +174,4 @@ class RedditScraper:
                 if 'replies' in comment_data and comment_data['replies']:
                     parsed_comments.extend(self.parse_comments(comment_data['replies']['data']['children'], post_id, comment_data.get('id')))
         return parsed_comments
+>>>>>>> upstream/main
